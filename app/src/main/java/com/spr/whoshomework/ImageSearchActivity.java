@@ -4,11 +4,14 @@ import android.annotation.TargetApi;
 import android.app.SearchManager;
 import android.content.Context;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
+
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ImageSearchActivity extends AppCompatActivity {
     private Menu mMenu;
@@ -44,6 +47,7 @@ public class ImageSearchActivity extends AppCompatActivity {
                     String output = String.format(PIXABAYURL, s);
 
                     Log.d(TAG,"submit url  =  " + output);
+                    getJson(output);
                     return false;
                 }
 
@@ -59,4 +63,15 @@ public class ImageSearchActivity extends AppCompatActivity {
         return true;
 
     }
+
+    private void getJson(String url) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+
+    }
+
+
 }
