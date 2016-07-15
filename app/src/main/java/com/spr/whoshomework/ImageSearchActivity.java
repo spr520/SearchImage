@@ -10,8 +10,10 @@ import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
 
+import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
 
 public class ImageSearchActivity extends AppCompatActivity {
     private Menu mMenu;
@@ -29,12 +31,8 @@ public class ImageSearchActivity extends AppCompatActivity {
     @Override
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public boolean onCreateOptionsMenu(Menu menu) {
-
         getMenuInflater().inflate(R.menu.searchbar, menu);
-
         this.mMenu = menu;
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
             SearchView search = (SearchView) menu.findItem(R.id.search).getActionView();
@@ -69,9 +67,26 @@ public class ImageSearchActivity extends AppCompatActivity {
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
-
     }
+
+    public class Pixabay {
+        int total;
+        int totalHits;
+        PixabayItem hits;
+
+
+        public class PixabayItem {
+            String previewURL;
+            String userImageURL;
+
+        }
+    }
+
+    public interface PhoneService {
+        @GET("")
+        Call<Pixabay> getResult();
+    }
+
 
 
 }
