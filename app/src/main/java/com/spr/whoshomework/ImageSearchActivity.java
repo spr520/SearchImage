@@ -1,15 +1,23 @@
 package com.spr.whoshomework;
 
-import android.annotation.TargetApi;
 import android.app.SearchManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTabHost;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
 
+import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -27,16 +35,35 @@ public class ImageSearchActivity extends AppCompatActivity {
     private String BASE_URL = "https://pixabay.com/";
     // sample https://pixabay.com/api/?key=2906241-7999c5df50f7c9de92cce050c&q=cat&image_type=photo
 
+    private ImageAdapter mImageAdapter;
+    private List<String> mImageList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_search);
+        mImageAdapter = new ImageAdapter(this, mImageList);
 
+        FragmentTabHost tabHost = (FragmentTabHost)findViewById(android.R.id.tabhost);
+        tabHost.setup(this, getSupportFragmentManager(), R.id.realtabcontent);
+
+        tabHost.addTab(tabHost.newTabSpec("Grid")
+                        .setIndicator("Grid"),
+                GridFragment.class,
+                null);
+
+        tabHost.addTab(tabHost.newTabSpec("List")
+                        .setIndicator("List"),
+                ListFragment.class,
+                null);
+    }
+
+    public ImageAdapter getImageAdapter() {
+        return mImageAdapter;
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onPrepareOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.searchbar, menu);
         this.mMenu = menu;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -46,7 +73,7 @@ public class ImageSearchActivity extends AppCompatActivity {
             search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
                 public boolean onQueryTextSubmit(String text) {
-                    text = text.replace(" " , "+");
+                    text = text.replace(" ", "+");
                     Log.d(TAG, "keyword = " + text);
                     getJson(text);
                     return false;
@@ -61,7 +88,7 @@ public class ImageSearchActivity extends AppCompatActivity {
 
         }
 
-        return true;
+        return super.onPrepareOptionsMenu(menu);
 
     }
 
@@ -77,27 +104,30 @@ public class ImageSearchActivity extends AppCompatActivity {
         call.enqueue(new Callback<Pixabay>() {
             @Override
             public void onResponse(Call<Pixabay> call, Response<Pixabay> response) {
-                Pixabay pixabay= response.body();
+                Pixabay pixabay = response.body();
                 int responseCode = response.code();
-                Log.d(TAG,"response code = " + responseCode);
-                if(responseCode == 200) {
+                Log.d(TAG, "response code = " + responseCode);
+                if (responseCode == 200) {
                     List<Pixabay.PixabayItem> items = pixabay.hits;
-                    for(Pixabay.PixabayItem item:items) {
-                        Log.d(TAG,"item " + item.webformatURL);
+                    mImageList.clear();
+                    for (Pixabay.PixabayItem item : items) {
+                        Log.d(TAG, "item " + item.webformatURL);
+                        mImageList.add(item.webformatURL);
                     }
+                    mImageAdapter.updateImageList(mImageList);
+                    mImageAdapter.notifyDataSetChanged();
 
                 }
             }
 
             @Override
             public void onFailure(Call<Pixabay> call, Throwable t) {
-                Log.d(TAG,"get data fail");
+                Log.d(TAG, "get data fail");
             }
         });
 
 
     }
-
 
     public interface PixabayService {
         @POST("api/?key=2906241-7999c5df50f7c9de92cce050c&image_type=photo")
@@ -112,7 +142,7 @@ public class ImageSearchActivity extends AppCompatActivity {
 
         @Override
         public String toString() {
-            return(totalHits);
+            return (totalHits);
         }
 
         List<PixabayItem> hits;
@@ -124,8 +154,53 @@ public class ImageSearchActivity extends AppCompatActivity {
             int webformatHeight;
 
         }
+    }
+
+    private class ImageAdapter extends BaseAdapter {
+        private Context mContext;
+        List<String> mImageList = new ArrayList<>();
+        private LayoutInflater inflater;
 
 
+        public ImageAdapter(Context context, List<String> imageList) {
+            mContext = context;
+            mImageList = imageList;
+
+            inflater = LayoutInflater.from(context);
+        }
+
+        public void updateImageList(List<String> imageList) {
+            mImageList = imageList;
+        }
+
+        @Override
+        public int getCount() {
+            return mImageList.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return mImageList.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        @Override
+        public View getView(int i, View convertView, ViewGroup parent) {
+            if (null == convertView) {
+                convertView = inflater.inflate(R.layout.image_item, parent, false);
+            }
+
+            Picasso.with(mContext)
+                    .load(mImageList.get(i))
+                    .fit() // will explain later
+                    .into((ImageView) convertView);
+
+            return convertView;
+        }
     }
 
 
