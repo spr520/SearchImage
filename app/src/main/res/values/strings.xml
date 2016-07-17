@@ -2,4 +2,8 @@
     <string name="app_name">searchImage</string>
     <string name="search">Search</string>
     <string name="search_title">Search title</string>
+    <string name="toast_search_keyword">Search keyword =</string>
+    <string name="toast_success">Query success and size = </string>
+    <string name="toast_fail_no_response">Query fail no response</string>
+    <string name="toast_fail_response_code">Query fail and response code = </string>
 </resources>
